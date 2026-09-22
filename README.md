@@ -1,0 +1,2 @@
+# Wechat_RPA
+一个通过pywechat搭建的本地搜集公共号链接平台
