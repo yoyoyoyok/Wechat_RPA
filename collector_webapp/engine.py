@@ -527,7 +527,11 @@ class Engine:
         if old_count:
             next_rounds = old_rounds + 1
             return next_rounds, next_rounds >= 2
-        return old_rounds, False
+        # A round with no date-qualified cards is not an old-date round.  In
+        # virtualized WeChat lists this can happen while the viewport is being
+        # rebuilt between scrolls; retaining the previous count would turn two
+        # non-consecutive old rounds into a false "reached the date boundary".
+        return 0, False
 
     @staticmethod
     def _collection_target_reached(collected: int, number: int,

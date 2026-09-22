@@ -136,6 +136,14 @@ class CollectorOfflineTests(unittest.TestCase):
         self.assertEqual(Engine._update_old_date_rounds(1, 0, 0, 4), (2, True))
         self.assertEqual(Engine._update_old_date_rounds(1, 0, 1, 4), (0, False))
 
+    def test_date_boundary_requires_consecutive_old_rounds(self):
+        # A virtualized-list refresh can produce an empty intermediate scan.
+        # It must break the old-date streak so a half-month task does not stop
+        # before the next in-range date group becomes visible.
+        self.assertEqual(Engine._update_old_date_rounds(1, 0, 0, 0), (0, False))
+        self.assertEqual(Engine._update_old_date_rounds(0, 0, 0, 4), (1, False))
+        self.assertEqual(Engine._update_old_date_rounds(1, 0, 0, 4), (2, True))
+
     def test_date_ranged_collection_does_not_stop_at_article_count(self):
         self.assertFalse(Engine._collection_target_reached(10, 10, '2026-09-16'))
         self.assertTrue(Engine._collection_target_reached(10, 10, None))
