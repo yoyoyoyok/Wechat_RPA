@@ -18,3 +18,6 @@ __pycache__/
 *.sqlite3
 .env
 .env.*
+# 本地过程文档(不对外发布)
+GUI改造计划.md
+accounts-*.png

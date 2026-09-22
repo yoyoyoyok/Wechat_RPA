@@ -1,8 +1,20 @@
-# pywechat🥇
+# Wechat_RPA🥇
 
 ![image](/pics/wechat.png)
 
 ## 🍬🍬微信RPA工具,支持4.1+微信自动化
+
+> **⚠️ 关于本仓库（必读）**
+>
+> 本仓库是**基于开源项目 [pywechat](https://github.com/Hello-Mr-Crab/pywechat)（作者 [Hello,Mr Crab](https://blog.csdn.net/weixin_73953650)，PyPI 包名 `pywechat127`）改造适配的二次开发项目**，并非从零开发的原创项目。原项目的核心代码、文档与教程版权归原作者所有（见 [LICENSE](/LICENSE)），在此感谢原作者的开源分享。
+>
+> **本仓库相对原项目的主要改动：**
+>
+> 1. **微信 4.1.13.65 兼容性修复**：新版微信搜索结果顶部新增"搜索网络结果"建议区，原代码会误点网络建议项导致打开聊天失败。已修复 `src/pyweixin/WeChatTools.py` 中 `get_search_result` 的两处定位逻辑（优先取"功能"等分区标签之后的首个同名条目），端到端验证收发消息、消息监听均正常。
+> 2. **新增 `collector_webapp/` 公众号文章链接采集 Web 控制台**：基于 FastAPI + SQLite 的本地 Web 管理台，支持多公众号队列采集、URL 去重入库、暂停/继续/停止（全局热键 Ctrl+Alt+P / Ctrl+Alt+S 或网页按钮），不改动 pyweixin 源码。详见 [collector_webapp/README.md](/collector_webapp/README.md)。
+> 3. **新增 `start_collector_gui.bat`** 一键启动采集控制台。
+>
+> 除上述改动外，其余内容（`src/`、`Mcp/`、`Skill/`、文档与图片等）均来自原项目 pywechat，具体功能说明请继续阅读下文。
 
 pywechat是一个基于pywinauto实现的Windows系统下PC微信自动化(pure uiautomation)的项目(**不涉及逆向Hook操作**)，可以用来收发消息和数据获取。
 注意，本项目开发的初衷为使用UI自动化和分享UI自动化技术。
@@ -10,7 +22,7 @@ pywechat是一个基于pywinauto实现的Windows系统下PC微信自动化(pure 
 
 ### 适用环境
 
-> 1. **微信版本**:3.9.12.x，4.1.6+
+> 1. **微信版本**:3.9.12.x，4.1.6+（本仓库已在 4.1.13.65 上验证）
 > 2. **操作系统**:🪟7 🪟10 🪟11
 > 3. **python版本**:3.10+(支持TypeHint)
 > 4. **支持语言**:简体中文,English,繁體中文
