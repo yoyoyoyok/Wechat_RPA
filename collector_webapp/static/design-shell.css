@@ -1,0 +1,411 @@
+/* Shared shell geometry for every design page. Keep navigation stable while content changes. */
+:root {
+  --shell-topbar-height: 48px;
+  --shell-sidebar-width: 200px;
+  --shell-nav-item-height: 40px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scrollbar-gutter: stable; }
+body { min-width: 960px; overflow-y: scroll; }
+
+.topbar,
+.app-topbar,
+.top-bar {
+  position: fixed !important;
+  inset: 0 0 auto 0 !important;
+  width: 100% !important;
+  height: var(--shell-topbar-height) !important;
+  min-height: var(--shell-topbar-height) !important;
+  padding: 0 20px !important;
+  z-index: 100 !important;
+}
+
+.leftnav,
+.left-nav,
+.app-sidenav,
+.sidebar-nav,
+.sidebar {
+  position: fixed !important;
+  top: var(--shell-topbar-height) !important;
+  right: auto !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: var(--shell-sidebar-width) !important;
+  min-width: var(--shell-sidebar-width) !important;
+  max-width: var(--shell-sidebar-width) !important;
+  height: calc(100vh - var(--shell-topbar-height)) !important;
+  margin: 0 !important;
+  padding: 12px 10px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-gutter: stable;
+  box-sizing: border-box !important;
+  z-index: 90 !important;
+}
+
+.topbar,
+.app-topbar,
+.top-bar {
+  background: var(--sidebar, var(--background, #f5f5f7)) !important;
+  border-bottom: 1px solid var(--border, #d1d1d6) !important;
+}
+
+.leftnav,
+.left-nav,
+.app-sidenav,
+.sidebar-nav,
+.sidebar {
+  background: var(--sidebar, var(--background, #f5f5f7)) !important;
+  border-right: 1px solid var(--border, #d1d1d6) !important;
+}
+
+.nav-list,
+.sidebar-nav,
+.leftnav,
+.left-nav,
+.app-sidenav {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The source templates use four slightly different nav-list implementations.
+   Reset their own padding/gap so switching pages cannot move the first item. */
+.nav-list {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 2px !important;
+}
+
+.sidebar-nav,
+.leftnav,
+.left-nav,
+.app-sidenav {
+  gap: 2px !important;
+}
+
+.nav-list,
+.leftnav .nav-list,
+.app-sidenav .nav-item,
+.sidebar-nav .nav-item { width: 100%; }
+
+.nav-item {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: var(--shell-nav-item-height) !important;
+  min-height: var(--shell-nav-item-height) !important;
+  max-height: var(--shell-nav-item-height) !important;
+  margin: 0 0 2px 0 !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-left: 3px solid transparent !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  transform: none !important;
+  color: var(--muted-foreground, #6e6e73) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  transition: background-color .15s ease, color .15s ease !important;
+}
+
+.nav-item:hover {
+  background: var(--accent, rgba(0,122,255,.08)) !important;
+  color: var(--foreground, #1d1d1f) !important;
+}
+
+.nav-item.active {
+  padding-left: 9px !important;
+  background: var(--accent, rgba(0,122,255,.10)) !important;
+  color: var(--primary, #007aff) !important;
+  border-left-color: var(--primary) !important;
+  font-weight: 600 !important;
+}
+
+.nav-item > span[data-icon],
+.nav-item > .ic {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  flex: 0 0 18px !important;
+}
+
+.nav-item > span:last-child,
+.nav-item > span:not([data-icon]):last-child {
+  min-width: 0 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.content-area,
+.main-content,
+.app-main {
+  margin-left: var(--shell-sidebar-width) !important;
+  padding-top: 28px;
+  min-width: 0;
+}
+
+/* The accounts page nests its page content inside .content-area. Do not apply
+   the outer navigation offset a second time to that nested content. */
+.content-area > .main-content,
+.content-area > .app-main {
+  margin-left: 0 !important;
+  margin-top: 0 !important;
+  padding: 24px 28px 56px !important;
+  height: calc(100vh - var(--shell-topbar-height)) !important;
+  overflow: auto !important;
+}
+
+.content-area {
+  height: 100vh !important;
+  min-height: 100vh !important;
+  overflow: hidden !important;
+}
+
+.topbar,
+.app-topbar,
+.top-bar { contain: layout paint; }
+
+/* All source pages ship their own motion-heavy mockup styles. The shell owns
+   navigation geometry, so page content never pushes or animates the sidebar. */
+.main-content,
+.app-main,
+.content-area,
+.main-content > *,
+.app-main > *,
+.content-area > *,
+.page-load,
+.page-in,
+.fade-in-up,
+.fadeInUp,
+.animate-fadeInUp { animation: none !important; transition: none !important; }
+
+#app-view { min-height: calc(100vh - var(--shell-topbar-height)); opacity: 1; }
+#app-view.is-loading { opacity: .72; pointer-events: none; }
+
+.content-area { padding-top: var(--shell-topbar-height) !important; }
+.main-content,
+.app-main { margin-top: var(--shell-topbar-height) !important; }
+
+/* Native selects stay keyboard accessible but match the Apple-style controls. */
+select, .select, .input, .select-btn, .select-btn-sm {
+  font: inherit;
+  color: var(--foreground, #1d1d1f);
+}
+select, .select {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 36px;
+  padding: 0 34px 0 12px;
+  border: 1px solid var(--input, #c7c7cc);
+  border-radius: 10px;
+  background-color: var(--background, #fff);
+  background-image: linear-gradient(45deg, transparent 50%, #8e8e93 50%), linear-gradient(135deg, #8e8e93 50%, transparent 50%);
+  background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+select:hover, .select:hover, .select-btn:hover, .select-btn-sm:hover { border-color: var(--primary, #007aff); }
+select:focus, .select:focus, .select-btn:focus, .select-btn-sm:focus { outline: none; border-color: var(--ring, #007aff); box-shadow: 0 0 0 3px rgba(0,122,255,.14); }
+select option { background: #fff; color: #1d1d1f; padding: 8px; }
+.select-wrap:has(> select) > .ic { display: none; }
+.dropdown-menu { border-radius: 12px !important; padding: 6px !important; box-shadow: 0 12px 30px rgba(0,0,0,.14) !important; }
+.dropdown-item { min-height: 34px; border-radius: 8px !important; }
+.select-menu { position: fixed; z-index: 10020; min-width: 170px; max-height: 280px; overflow: auto; padding: 6px; background: var(--card, #fff); border: 1px solid var(--border, #d1d1d6); border-radius: 12px; box-shadow: 0 12px 30px rgba(0,0,0,.14); }
+.select-menu button { display: block; width: 100%; padding: 9px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--foreground, #1d1d1f); text-align: left; cursor: pointer; font: inherit; }
+.select-menu button:hover, .select-menu button[aria-selected="true"] { background: rgba(0,122,255,.10); color: var(--primary, #007aff); }
+
+/* Keep article filters consistent with the modal and account toolbar. */
+.app-main .select-wrap { position: relative; display: inline-flex; align-items: center; }
+.app-main .select-wrap .select {
+  width: 178px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 36px 0 13px;
+  border-radius: 11px;
+  border-color: var(--input, #c7c7cc);
+  background-color: var(--background, #fff);
+  font-size: 13px;
+}
+.app-main .select-wrap .select:hover { border-color: #a1a1a6; background-color: var(--background, #fff); }
+.app-main .select-wrap .select:focus { border-color: var(--primary, #007aff); box-shadow: 0 0 0 3px rgba(0,122,255,.14); }
+.app-main .select-wrap + .select-wrap { margin-left: 6px; }
+.app-main .tbar-left .dropdown-menu { min-width: 196px; padding: 6px; border-radius: 12px; }
+.app-main .tbar-left .dropdown-item { min-height: 36px; padding: 0 10px; border-radius: 8px; }
+
+/* Apple-style form primitives used by adapter modals. */
+.adapter-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(28, 28, 30, .28);
+  backdrop-filter: blur(5px) saturate(120%);
+}
+.adapter-modal-panel {
+  width: min(520px, 100%);
+  max-height: min(720px, 90vh);
+  overflow: auto;
+  padding: 26px 28px 22px;
+  color: var(--card-foreground, var(--foreground, #1d1d1f));
+  background: var(--card, #fff);
+  border: 1px solid rgba(60, 60, 67, .12);
+  border-radius: 18px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .18), 0 2px 8px rgba(0, 0, 0, .06);
+}
+.adapter-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.adapter-modal-title {
+  margin: 0;
+  color: var(--foreground, #1d1d1f);
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -.01em;
+}
+.adapter-modal-close {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--muted-foreground, #8e8e93);
+  background: transparent;
+  font-size: 24px;
+  line-height: 28px;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+.adapter-modal-close:hover { color: var(--foreground, #1d1d1f); background: var(--secondary, #f2f2f7); }
+.adapter-modal-body { min-width: 0; }
+.adapter-form { display: grid; gap: 20px; }
+.adapter-field { display: grid; gap: 8px; }
+.adapter-field-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground, #1d1d1f);
+  font-size: 13px;
+  font-weight: 600;
+}
+.adapter-required,
+.adapter-field-optional {
+  color: var(--muted-foreground, #8e8e93);
+  font-size: 11px;
+  font-weight: 500;
+}
+.adapter-required { color: var(--primary, #007aff); }
+.adapter-field-control {
+  width: 100%;
+  height: 42px;
+  min-height: 42px;
+  padding: 0 13px;
+  color: var(--foreground, #1d1d1f);
+  background: var(--background, #fff);
+  border: 1px solid var(--input, #c7c7cc);
+  border-radius: 11px;
+  outline: none;
+  font: inherit;
+  font-size: 14px;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .025);
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+.adapter-field-control::placeholder { color: #a1a1a6; }
+.adapter-field-control:hover { border-color: #a1a1a6; }
+.adapter-field-control:focus {
+  border-color: var(--primary, #007aff);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, .14);
+}
+.adapter-select-wrap { position: relative; }
+.adapter-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 38px;
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, #8e8e93 50%), linear-gradient(135deg, #8e8e93 50%, transparent 50%);
+  background-position: calc(100% - 17px) 18px, calc(100% - 12px) 18px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.adapter-number-control {
+  display: flex;
+  align-items: center;
+  width: 164px;
+  height: 42px;
+  overflow: hidden;
+  background: var(--background, #fff);
+  border: 1px solid var(--input, #c7c7cc);
+  border-radius: 11px;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .025);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.adapter-number-control:focus-within { border-color: var(--primary, #007aff); box-shadow: 0 0 0 3px rgba(0, 122, 255, .14); }
+.adapter-number-control button {
+  width: 42px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  color: var(--primary, #007aff);
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color .15s ease;
+}
+.adapter-number-control button:hover { background: rgba(0, 122, 255, .08); }
+.adapter-number-control button:active { background: rgba(0, 122, 255, .14); }
+.adapter-number-input {
+  width: 80px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  color: var(--foreground, #1d1d1f);
+  background: transparent;
+  text-align: center;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+}
+.adapter-number-input::-webkit-inner-spin-button,
+.adapter-number-input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.adapter-number-input { -moz-appearance: textfield; }
+.adapter-field-hint { color: var(--muted-foreground, #8e8e93); font-size: 12px; line-height: 1.45; }
+.adapter-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 26px; }
+.adapter-modal-actions .btn { min-width: 76px; height: 38px; border-radius: 11px; font-size: 13px; }
+.adapter-modal-secondary { color: var(--foreground, #1d1d1f) !important; background: var(--secondary, #f2f2f7) !important; }
+.adapter-modal-primary { box-shadow: 0 5px 12px rgba(0, 122, 255, .18); }
+
+@media (max-width: 560px) {
+  .adapter-modal-panel { padding: 22px 20px 18px; border-radius: 16px; }
+  .adapter-modal-actions { margin-top: 22px; }
+}
+
+/* The design templates contain demo values. Keep them out of the first paint
+   until the adapter has populated the real API-backed view. */
+.adapter-loading .content-area, .adapter-loading .main-content, .adapter-loading .app-main { visibility: hidden; }
+
+@media (max-width: 768px) {
+  .leftnav, .left-nav, .app-sidenav, .sidebar-nav, .sidebar {
+    width: 200px !important;
+    min-width: 200px !important;
+  }
+  .content-area, .main-content, .app-main { margin-left: 200px !important; }
+}

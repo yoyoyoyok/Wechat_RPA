@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>公众号文章链接采集台</title>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --line:#e3e6ea; --txt:#262a30; --sub:#7a828c;
+          --blue:#3b7cff; --green:#22a06b; --red:#e5484d; --amber:#f5a623; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Microsoft YaHei",system-ui,sans-serif; background:var(--bg); color:var(--txt); padding:20px; }
+  h1 { font-size:20px; margin-bottom:4px; }
+  .sub { color:var(--sub); font-size:12px; margin-bottom:16px; }
+  .sub kbd { background:#eef1f5; border:1px solid var(--line); border-radius:4px; padding:1px 5px; font-size:11px; }
+  .grid { display:grid; grid-template-columns:340px 1fr; gap:16px; align-items:start; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+  .card h2 { font-size:14px; margin-bottom:10px; }
+  input,select { border:1px solid var(--line); border-radius:6px; padding:7px 9px; font-size:13px; width:100%; }
+  .row { display:flex; gap:8px; margin-top:8px; }
+  button { border:none; border-radius:6px; padding:8px 14px; font-size:13px; cursor:pointer; color:#fff; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .btn-blue { background:var(--blue); } .btn-green { background:var(--green); }
+  .btn-red { background:var(--red); } .btn-gray { background:#98a1ab; }
+  .ctrl { display:flex; gap:8px; align-items:center; }
+  .dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:6px; }
+  .dot.run { background:var(--green); } .dot.pause { background:var(--amber); } .dot.idle { background:#b6bec7; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th,td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--sub); font-weight:normal; }
+  .tag { display:inline-block; padding:1px 8px; border-radius:10px; font-size:11px; }
+  .tag.pending{background:#eef1f5;color:#5b6470;} .tag.collecting,.tag.extracting{background:#e5efff;color:var(--blue);}
+  .tag.done{background:#e4f5ec;color:var(--green);} .tag.stopped{background:#fdf1e0;color:#b07a10;}
+  .tag.failed{background:#fdebec;color:var(--red);}
+  #logs { font-family:Consolas,monospace; font-size:11.5px; line-height:1.7; max-height:180px; overflow-y:auto;
+          background:#fafbfc; border:1px solid var(--line); border-radius:6px; padding:8px 10px; color:#4a5260; }
+  .cur-name { font-size:15px; font-weight:bold; }
+  .cur-phase { color:var(--blue); font-size:13px; margin:4px 0; }
+  .bar { height:8px; background:#edf0f4; border-radius:4px; overflow:hidden; margin:6px 0; }
+  .bar>i { display:block; height:100%; background:var(--blue); width:0; transition:width .4s; }
+  a { color:var(--blue); text-decoration:none; word-break:break-all; }
+  .del { background:none; color:var(--sub); padding:2px 6px; font-size:12px; }
+  .del:hover { color:var(--red); }
+  .account-list { max-height:220px; overflow:auto; border:1px solid var(--line); border-radius:6px; }
+  .account-row { display:flex; gap:8px; align-items:center; padding:7px 9px; border-bottom:1px solid var(--line); font-size:12px; }
+  .account-row:last-child { border-bottom:0; }
+  .account-row span { flex:1; }
+  .mini { padding:4px 8px; font-size:11px; }
+  .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+  .toolbar input { width:180px; }
+</style>
+</head>
+<body>
+<h1>公众号文章链接采集台</h1>
+<div class="sub">
+  采集流程：自动进入公众号主页逐篇收藏 → 到收藏界面逐条提取链接入库存档 &nbsp;|&nbsp;
+  全局热键（微信占用鼠标时可用）：<kbd>Ctrl+Alt+P</kbd> 暂停/继续 &nbsp; <kbd>Ctrl+Alt+S</kbd> 停止当前任务
+</div>
+
+<div class="grid">
+  <div><!-- 左列 -->
+    <div class="card">
+      <h2>控制</h2>
+      <div class="ctrl">
+        <span class="dot idle" id="dot"></span><span id="stateTxt" style="font-size:13px">空闲</span>
+      </div>
+      <div class="row">
+        <button class="btn-green" id="btnPause">暂停</button>
+        <button class="btn-red" id="btnStop">停止当前任务</button>
+      </div>
+      <div class="row" style="justify-content:space-between;color:var(--sub);font-size:12px">
+        <span>已入库链接：<b id="cnt">0</b> 条</span>
+        <span id="haltTip" style="color:var(--amber);display:none">队列已挂起，点“继续”恢复</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>新建采集任务</h2>
+      <input id="inAccount" placeholder="公众号名称（需已在微信中关注）">
+      <div class="row">
+        <input id="inNumber" type="number" min="1" max="200" value="10" style="width:110px">
+        <label style="font-size:12px;color:var(--sub);display:flex;align-items:center;gap:4px"><input id="inRemove" type="checkbox" style="width:auto">复制后移除收藏</label>
+        <button class="btn-blue" id="btnAdd" style="flex:1">加入队列</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>公众号管理</h2>
+      <div class="row"><input id="newAccount" placeholder="添加公众号名称"><input id="newAccountNumber" type="number" min="1" max="200" value="10" style="width:70px"><button class="btn-blue mini" id="btnAccountAdd">添加</button></div>
+      <div class="account-list" id="accountList" style="margin-top:8px"></div>
+      <div class="row"><button class="btn-green" id="btnBatch" style="flex:1">勾选公众号并连续执行</button></div>
+    </div>
+
+    <div class="card">
+      <h2>任务队列</h2>
+      <table id="taskTable"><thead><tr><th>#</th><th>公众号</th><th>状态</th><th>进度</th><th></th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <div><!-- 右列 -->
+    <div class="card">
+      <h2>当前任务</h2>
+      <div id="curBox" style="color:var(--sub)">空闲中，等待队列任务…</div>
+    </div>
+    <div class="card">
+      <h2>运行日志</h2>
+      <div id="logs"></div>
+    </div>
+    <div class="card">
+      <h2>已采集链接
+        <select id="flt" style="width:160px;display:inline-block;margin-left:12px;font-size:12px"><option value="">全部公众号</option></select>
+      </h2>
+      <div class="toolbar"><input id="articleSearch" placeholder="搜索标题或链接"><button class="btn-gray mini" id="btnExport">导出 CSV</button><button class="btn-red mini" id="btnDeleteArticles">删除选中</button></div>
+      <table id="artTable"><thead><tr><th style="width:45%">标题</th><th>链接</th><th>公众号</th><th>时间</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+ let paused = false, queueHalted = false, fltAccount = '', accounts = [], articles = [];
+
+// ---------- 轮询状态 ----------
+async function refresh() {
+  try {
+    const s = await (await fetch('/api/status')).json();
+    paused = s.paused;
+    queueHalted = s.queue_halted;
+    $('dot').className = 'dot ' + (s.current ? (s.paused ? 'pause' : 'run') : 'idle');
+    $('stateTxt').textContent = s.current
+      ? (s.paused ? `已暂停（${s.current.account}）` : `采集中（${s.current.account}）`)
+      : (s.queue_halted ? '队列挂起' : '空闲');
+    $('btnPause').textContent = s.paused || s.queue_halted ? '继续' : '暂停';
+    $('btnPause').className = s.paused || s.queue_halted ? 'btn-green' : 'btn-blue';
+    $('haltTip').style.display = s.queue_halted ? '' : 'none';
+    $('cnt').textContent = s.article_count;
+    $('logs').innerHTML = (s.logs || []).map(l => `<div>${l}</div>`).join('');
+
+    if (s.current) {
+      const [done, total] = (s.current.progress || '0/0').split('/').map(Number);
+      const pct = total ? Math.round(done / total * 100) : 0;
+      $('curBox').innerHTML = `
+        <div class="cur-name">#${s.current.id} ${s.current.account}</div>
+        <div class="cur-phase">${s.current.phase} · ${s.current.progress}（${pct}%）${s.paused ? ' · 已暂停' : ''}</div>
+        <div class="bar"><i style="width:${pct}%"></i></div>`;
+    } else {
+      $('curBox').textContent = '空闲中，等待队列任务…';
+    }
+    await refreshTasks(); await refreshAccounts(); await refreshArticles();
+  } catch (e) { /* 服务重启中 */ }
+}
+
+async function refreshTasks() {
+  const ts = await (await fetch('/api/tasks')).json();
+  const name = {pending:'待办',collecting:'收藏中',extracting:'提取链接',done:'完成',stopped:'已停止',failed:'失败'};
+  $('taskTable').querySelector('tbody').innerHTML = ts.map(t => `
+    <tr><td>${t.id}</td><td>${t.account}</td>
+    <td><span class="tag ${t.status}">${name[t.status] || t.status}</span>
+        ${t.error ? `<div style="color:var(--red);font-size:11px">${t.error.slice(0,50)}</div>` : ''}</td>
+    <td>${t.collected}/${t.number}${t.extracted ? `，链接${t.extracted}` : ''}${t.remove_favorite ? '<div style="color:var(--green);font-size:11px">提取后移除收藏</div>' : ''}</td>
+    <td>${['pending','done','stopped','failed'].includes(t.status)
+        ? `<button class="del" onclick="delTask(${t.id})">删除</button>` : ''}</td></tr>`).join('');
+}
+
+async function refreshArticles() {
+  articles = await (await fetch('/api/articles?limit=1000' + (fltAccount ? '&account=' + encodeURIComponent(fltAccount) : ''))).json();
+  const q = $('articleSearch').value.trim().toLowerCase();
+  const as = articles.filter(a => !q || [a.title,a.url,a.account].some(x => (x || '').toLowerCase().includes(q)));
+  $('artTable').querySelector('tbody').innerHTML = as.map(a => `
+    <tr><td><input type="checkbox" class="article-check" value="${a.id}" style="width:auto"> ${a.title || ''}</td>
+    <td><a href="${a.url}" target="_blank">${a.url.slice(0, 60)}…</a></td>
+    <td>${a.account || ''}</td><td>${(a.collected_at || '').replace('T', ' ')}</td></tr>`).join('')
+    || '<tr><td colspan="4" style="color:var(--sub)">暂无数据</td></tr>';
+  // 公众号筛选下拉
+  const accs = [...new Set(as.map(a => a.account).filter(Boolean))];
+  const sel = $('flt');
+  if (sel.options.length - 1 !== accs.length) {
+    sel.innerHTML = '<option value="">全部公众号</option>' + accs.map(a => `<option ${a === fltAccount ? 'selected' : ''}>${a}</option>`).join('');
+  }
+}
+
+async function refreshAccounts() {
+  accounts = await (await fetch('/api/accounts')).json();
+  $('accountList').innerHTML = accounts.length ? accounts.map(a => `<label class="account-row"><input type="checkbox" class="account-check" value="${a.name}" ${a.enabled ? 'checked' : ''}><span>${a.name}</span><input class="account-num" data-id="${a.id}" type="number" min="1" max="200" value="${a.default_number}" style="width:58px"><button class="del" onclick="removeAccount(${a.id});event.preventDefault()">删除</button></label>`).join('') : '<div style="padding:10px;color:var(--sub);font-size:12px">暂无公众号，请先添加</div>';
+}
+
+// ---------- 操作 ----------
+$('btnAdd').onclick = async () => {
+  const account = $('inAccount').value.trim(), number = +$('inNumber').value;
+  if (!account) return alert('请输入公众号名称');
+  await fetch('/api/tasks', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({account, number, remove_favorite:$('inRemove').checked})});
+  $('inAccount').value = ''; refresh();
+};
+ $('btnPause').onclick = async () => {
+   await fetch((paused || queueHalted) ? '/api/resume' : '/api/pause', {method:'POST'});
+   refresh();
+ };
+$('btnStop').onclick = async () => { if (confirm('确定停止当前任务？已采集的数据会保留。')) { await fetch('/api/stop', {method:'POST'}); refresh(); } };
+async function delTask(id) { await fetch('/api/tasks/' + id, {method:'DELETE'}); refresh(); }
+$('flt').onchange = e => { fltAccount = e.target.value; refreshArticles(); };
+$('articleSearch').oninput = () => refreshArticles();
+$('btnExport').onclick = () => { window.location = '/api/articles/export' + (fltAccount ? '?account=' + encodeURIComponent(fltAccount) : ''); };
+$('btnDeleteArticles').onclick = async () => { const ids=[...document.querySelectorAll('.article-check:checked')].map(x=>x.value); if(!ids.length) return alert('请先勾选文章'); if(confirm(`确定删除 ${ids.length} 条文章记录？`)){ await fetch('/api/articles?ids='+ids.join(','),{method:'DELETE'}); refreshArticles(); } };
+$('btnAccountAdd').onclick = async () => { const name=$('newAccount').value.trim(), number=+$('newAccountNumber').value; if(!name)return alert('请输入公众号名称'); await fetch('/api/accounts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,default_number:number})}); $('newAccount').value=''; refreshAccounts(); };
+$('btnBatch').onclick = async () => { const selected=[...document.querySelectorAll('.account-check:checked')].map(x=>x.value); if(!selected.length)return alert('请至少勾选一个公众号'); const first=document.querySelector('.account-num'); const number=+$('inNumber').value || +(first && first.value) || 10; await fetch('/api/tasks/batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accounts:selected,number,remove_favorite:$('inRemove').checked})}); refresh(); };
+async function removeAccount(id) { if(confirm('确定删除该公众号配置？')) { await fetch('/api/accounts/'+id,{method:'DELETE'}); refreshAccounts(); } }
+document.addEventListener('keydown', e => {  // 页面内快捷键（浏览器聚焦时）
+  if (e.code === 'Space' && e.target.tagName !== 'INPUT') { e.preventDefault(); $('btnPause').click(); }
+});
+
+refresh();
+setInterval(refresh, 1500);
+</script>
+</body>
+</html>

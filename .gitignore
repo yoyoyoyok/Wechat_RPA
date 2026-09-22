@@ -1,0 +1,20 @@
+"__pycache__/" 
+"*.pyc" 
+"*.venv"
+.idea/
+# test scripts
+probe*.py
+dump_*.py
+ui_tree_*.txt
+_install_*.py
+_patch_*.py
+_quote_*.txt
+__pycache__/
+*.pyc
+.pytest_cache/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+.env
+.env.*
